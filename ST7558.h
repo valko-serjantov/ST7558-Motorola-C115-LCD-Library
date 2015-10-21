@@ -31,7 +31,7 @@
 
 #ifndef _ST7558_H
 #define _ST7558_H
-
+#include <Adafruit_GFX.h>
 #if defined(ARDUINO) && ARDUINO >= 100
   #include "Arduino.h"
 #else
@@ -77,7 +77,7 @@ class ST7558 : public Adafruit_GFX{
 
   public:
  
-    ST7558(uint8_t SDA=-1, uint8_t SCL=-1, uint8_t rst=-1);
+    ST7558( uint8_t rst=-1);
         void init(void),
            display(void),
            drawPixel(int16_t posX, int16_t posY,  uint16_t color),
@@ -98,7 +98,7 @@ class ST7558 : public Adafruit_GFX{
             hwReset(void),
             setAddrXY(uint8_t x, uint8_t pageY);
 
-    uint8_t _rst, _SDA, _SCL,
+    uint8_t _rst,
                 colstart, rowstart;
     
 };

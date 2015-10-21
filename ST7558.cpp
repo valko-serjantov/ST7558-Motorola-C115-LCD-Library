@@ -48,7 +48,6 @@
 
 #include <stdlib.h>
 #include <Wire.h>
-#include <Adafruit_GFX.h>
 #include "ST7558.h"
 
  
@@ -144,34 +143,12 @@ static void updateBoundingBox(uint8_t xmin, uint8_t ymin, uint8_t xmax, uint8_t 
 #endif
 }
 
-ST7558::ST7558(uint8_t SDA,uint8_t SCL, uint8_t rst)
- : Adafruit_GFX(ST7558_WIDTH, ST7558_HEIGHT)
-{
- _SDA = SDA;
- _SCL = SCL;
- _rst  = rst;
-}
-/*
-ST7558::ST7558(uint8_t SDA,uint8_t SCL )
- : Adafruit_GFX(ST7558_WIDTH, ST7558_HEIGHT)
-{
- _SDA = SDA;
- _SCL = SCL;
- 
-}
-ST7558::ST7558(uint8_t rst )
+ST7558::ST7558( uint8_t rst)
  : Adafruit_GFX(ST7558_WIDTH, ST7558_HEIGHT)
 {
  _rst  = rst;
- 
 }
 
-ST7558::ST7558(void )
- : Adafruit_GFX(ST7558_WIDTH, ST7558_HEIGHT)
-{
- // return
-}
-*/
 inline void ST7558::i2cwrite(uint8_t *data, uint8_t len) {
         
   Wire.beginTransmission(I2C_ADDR_DISPLAY);
@@ -182,7 +159,7 @@ inline void ST7558::i2cwrite(uint8_t *data, uint8_t len) {
 
 void ST7558::hwReset(void){
   
-  if (_rst) {
+  if (_rst!=-1) {
     pinMode(_rst, OUTPUT);
     digitalWrite(_rst, HIGH);
     delay(500);
@@ -245,14 +222,9 @@ void ST7558::setContrast(uint8_t val) {
 
 void ST7558::init(void) {
   
-  if ( _SDA and _SCL){
-	Wire.begin(_SDA,_SCL);  
-  }
-  else {
-	  Wire.begin();
-  };
   
-  
+  Wire.begin();
+
   colstart= 0x80;
   rowstart= 0x40;
   
