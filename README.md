@@ -1,7 +1,7 @@
 # ST7558
  
  
-ST7558 lcd library for Arduino
+ST7558 lcd library for Arduino ESP8266
 
 
 Motorola C115 Display, chipset ST7558, compatible with:
@@ -29,3 +29,5 @@ https://www.youtube.com/watch?v=zOoVFpy9CIY
 
 ### Author
 Tapia Favio <technicc@gmail.com>
+## Editor
+Valera Serzhantov <valera.serjantov@hotmail.com>
