@@ -77,9 +77,8 @@ class ST7558 : public Adafruit_GFX{
 
   public:
  
-    ST7558(uint8_t rst=-1);
-    
-    void init(void),
+    ST7558(uint8_t SDA=-1, uint8_t SCL=-1, uint8_t rst=-1);
+        void init(void),
            display(void),
            drawPixel(int16_t posX, int16_t posY,  uint16_t color),
            setContrast(uint8_t val),
@@ -99,7 +98,7 @@ class ST7558 : public Adafruit_GFX{
             hwReset(void),
             setAddrXY(uint8_t x, uint8_t pageY);
 
-    uint8_t _rst,
+    uint8_t _rst, _SDA, _SCL,
                 colstart, rowstart;
     
 };
