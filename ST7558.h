@@ -31,13 +31,14 @@
 
 #ifndef _ST7558_H
 #define _ST7558_H
-#include <Adafruit_GFX.h>
+
 #if defined(ARDUINO) && ARDUINO >= 100
   #include "Arduino.h"
 #else
   #include "WProgram.h"
   #include "pins_arduino.h"
 #endif
+#include <Adafruit_GFX.h>
 
 #define ST7558_WIDTH    96  // 94 visibles de 102 (de 0 a 95)
 #define ST7558_HEIGHT   65  // 64 visibles de 65 (de 0 a 64)
