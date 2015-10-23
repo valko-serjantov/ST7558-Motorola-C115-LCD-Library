@@ -38,8 +38,7 @@
   #include "WProgram.h"
   #include "pins_arduino.h"
 #endif
-#include <Adafruit_GFX.h>
-
+#include <Core_GFX.h>
 #define ST7558_WIDTH    96  // 94 visibles de 102 (de 0 a 95)
 #define ST7558_HEIGHT   65  // 64 visibles de 65 (de 0 a 64)
 
@@ -74,13 +73,17 @@
 #define ST7558_SETVOP 0x80
 
 
-class ST7558 : public Adafruit_GFX{
+class ST7558 : public Core_GFX {
 
   public:
  
     ST7558( uint8_t rst=-1);
-        void init(void),
-           display(void),
+	void init(void),
+		   initBacklight(uint8_t GPIO),
+           BacklightOn(void),
+		   BacklightOff(void),
+			SetBacklightLevel(uint8_t level),
+		   display(void),
            drawPixel(int16_t posX, int16_t posY,  uint16_t color),
            setContrast(uint8_t val),
            drawFastVLine(int16_t x, int16_t y, int16_t h,  uint16_t color),
@@ -95,11 +98,11 @@ class ST7558 : public Adafruit_GFX{
            
  
   private:
-    void i2cwrite(uint8_t *data, uint8_t len),
+	   void i2cwrite(uint8_t *data, uint8_t len),
             hwReset(void),
             setAddrXY(uint8_t x, uint8_t pageY);
 
-    uint8_t _rst,
+    uint8_t _rst, BacklightGPIO = 13,BlLevel,
                 colstart, rowstart;
     
 };

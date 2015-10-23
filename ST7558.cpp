@@ -51,7 +51,7 @@
 #include "ST7558.h"
 
  
-// the memory buffer for the LCD
+// the memory framebuffer for the LCD
 uint8_t st7558_buffer[918];
 
 #define enablePartialUpdate
@@ -60,8 +60,23 @@ uint8_t st7558_buffer[918];
 static uint8_t xUpdateMin, xUpdateMax, yUpdateMin, yUpdateMax;
 #endif
 
+void  ST7558::initBacklight(uint8_t GPIO) {
+	BacklightGPIO = GPIO;
+	pinMode(BacklightGPIO, OUTPUT );
+}
+void ST7558::BacklightOn(void) {
+	//analogWrite(BacklightGPIO, BlLevel);
+	digitalWrite(BacklightGPIO, LOW);
+}
 
-
+void ST7558::BacklightOff(void) {
+	//analogWrite(BacklightGPIO, 255)
+	digitalWrite(BacklightGPIO, HIGH);
+}
+void ST7558::SetBacklightLevel(uint8_t level) {
+	BlLevel = level; 
+	analogWrite(BacklightGPIO, BlLevel);
+}
 static void updateBoundingBox(uint8_t xmin, uint8_t ymin, uint8_t xmax, uint8_t ymax) {
 #ifdef enablePartialUpdate
   if (xmin < xUpdateMin) xUpdateMin = xmin;
@@ -72,7 +87,7 @@ static void updateBoundingBox(uint8_t xmin, uint8_t ymin, uint8_t xmax, uint8_t 
 }
 
 ST7558::ST7558( uint8_t rst)
- : Adafruit_GFX(ST7558_WIDTH, ST7558_HEIGHT)
+ : Core_GFX(ST7558_WIDTH, ST7558_HEIGHT)
 {
  _rst  = rst;
 }
@@ -219,7 +234,9 @@ void ST7558::display(void) {
 void ST7558::drawPixel(int16_t x, int16_t y,  uint16_t color) {
   
   if((x < 0) ||(x >= _width) || (y < 0) || (y >= _height)) return;
-   
+  /// Switch Y orientation Y 
+  y = _height - y;
+
   int16_t t;
   switch(rotation){
     case 1:
