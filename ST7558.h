@@ -41,7 +41,8 @@
 #include <Core_GFX.h>
 #define ST7558_WIDTH    96  // 94 visibles de 102 (de 0 a 95)
 #define ST7558_HEIGHT   65  // 64 visibles de 65 (de 0 a 64)
-
+#define ST7558_MAX_TEXT_LINE 7
+#define	ST7558_MAX_TEXT_ROW 15
 #define ST7558_BLACK    0
 #define ST7558_WHITE    1
 
@@ -78,21 +79,24 @@ class ST7558 : public Core_GFX {
   public:
  
     ST7558( uint8_t rst=-1);
-	void init(void),
-		   initBacklight(uint8_t GPIO),
-           BacklightOn(void),
-		   BacklightOff(void),
-			SetBacklightLevel(uint8_t level),
-		   display(void),
-           drawPixel(int16_t posX, int16_t posY,  uint16_t color),
-           setContrast(uint8_t val),
-           drawFastVLine(int16_t x, int16_t y, int16_t h,  uint16_t color),
-           drawFastHLine(int16_t x, int16_t y, int16_t w,  uint16_t color),
-           fillRect(int16_t x, int16_t y, int16_t w, int16_t h,  uint16_t color),
-           invertDisplay(boolean i),
-           displayOff(void),
-           displayOn(void),
-           clearDisplay(void);
+	~ST7558();
+	void init(uint8_t sda, uint8_t scl),
+		initBacklight(uint8_t GPIO),
+		BacklightOn(void),
+		BacklightOff(void),
+		SetBacklightLevel(uint8_t level),
+		display(void),
+		drawPixel(int16_t posX, int16_t posY, uint16_t color),
+		setContrast(uint8_t val),
+		drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color),
+		drawFastHLine(int16_t x, int16_t y, int16_t w, uint16_t color),
+		fillRect(int16_t x, int16_t y, int16_t w, int16_t h, uint16_t color),
+		invertDisplay(boolean i),
+		displayOff(void),
+		displayOn(void),
+		clearDisplay(void),
+		SetTextPosition(uint8_t line, uint8_t row);
+		
   uint8_t getPixel(int8_t x, int8_t y),
               getPixel(int8_t x, int8_t y, const uint8_t *bitmap, uint8_t w, uint8_t h);
            
@@ -103,7 +107,7 @@ class ST7558 : public Core_GFX {
             setAddrXY(uint8_t x, uint8_t pageY);
 
     uint8_t _rst, BacklightGPIO = 13,BlLevel,
-                colstart, rowstart;
+                colstart, rowstart, _sda, _scl;
     
 };
 

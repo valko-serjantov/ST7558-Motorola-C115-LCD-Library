@@ -6,7 +6,7 @@
 
 ****************************************************/
 
-#include <avr/pgmspace.h>
+#include <pgmspace.h>
 
 const unsigned char PROGMEM flecha[] = {
   /* page 0 (lines 0-7) */

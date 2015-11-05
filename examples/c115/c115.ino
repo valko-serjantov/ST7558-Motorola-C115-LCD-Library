@@ -6,14 +6,14 @@
 
 ****************************************************/
 
-#include <avr/pgmspace.h>
+#include <pgmspace.h>
 #include <Adafruit_GFX.h>
 #include <ST7558.h>
 #include <Wire.h>
 
 #define RST_PIN 7
 
-ST7558 lcd = ST7558(RST_PIN);
+ST7558 lcd = ST7558();
 
 extern const unsigned char flecha[];
 extern const unsigned char cara[];
@@ -26,7 +26,7 @@ void setup() {
   // put your setup code here, to run once:
   Serial.begin(9600);
 
-  Wire.begin();
+  Wire.begin(4,5);
   
   lcd.init();
   lcd.setContrast(65);
@@ -34,13 +34,20 @@ void setup() {
   //lcd.display();
   //delay(1500);
   
-  //lcd.clearDisplay();
-  //lcd.setTextColor(ST7558_BLACK);
-  //lcd.setCursor(15,0);
-  //lcd.print("Hello World!");
-  //lcd.display();
-  //delay(1500);
-  //lcd.clearDisplay();
+  lcd.clearDisplay();
+  lcd.setTextColor(ST7558_BLACK);
+  lcd.setCursor(15,0);
+  lcd.print("Привет миру!");
+  lcd.setCursor(15,20);
+  lcd.setTextSize(2);
+  lcd.print("Hello World!");
+  
+  lcd.setCursor(1,40);
+  lcd.setTextSize(3);
+  lcd.print("Hello World!");
+  lcd.display();
+  delay(15000);
+  lcd.clearDisplay();
   //lcd.drawBitmap(70, 0, cara,8, 8, ST7558_BLACK);
   //lcd.drawBitmap(0, 0, black, 96, 65, ST7558_BLACK);
   lcd.drawBitmap(69, 0, logo16, 16, 16, ST7558_BLACK);
@@ -50,16 +57,7 @@ void setup() {
 }
 
 void loop() {
-  // put your main code here, to run repeatedly:
-  if(i<ST7558_WIDTH){
-    lcd.drawBitmap(i, 10, flecha, 16, 8, ST7558_BLACK);
-    lcd.display();
-    delay(50);
-    lcd.drawBitmap(i, 10, flecha, 16, 8, ST7558_WHITE);
-    i++;
-  }
-  else
-    i=-15;
+ 
 }
 
 void grid(){

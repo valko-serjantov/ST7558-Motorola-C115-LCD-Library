@@ -94,8 +94,8 @@ class Core_GFX : public Print {
 	textdirection,
 	utf8handle = 0x00;
   boolean
-    wrap,   // If set, 'wrap' text at right edge of display
-    _cp437; // If set, use correct CP437 charset (default is off)
+	  wrap;   // If set, 'wrap' text at right edge of display
+
 };
 
 class Core_GFX_Button {

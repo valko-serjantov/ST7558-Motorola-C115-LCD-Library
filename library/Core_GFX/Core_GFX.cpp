@@ -55,7 +55,7 @@ Core_GFX::Core_GFX(int16_t w, int16_t h):
   textsize  = 1;
   textcolor = textbgcolor = 0xFFFF;
   wrap      = true;
-  _cp437    = false;
+  
 }
 
 // Draw a circle outline
@@ -416,7 +416,7 @@ size_t Core_GFX::write(uint8_t c) {
 void Core_GFX::write(uint8_t c) {
 #endif
 	if (c == '\n') {
-    cursor_y -= textsize*8;
+    cursor_y += textsize*8;
     cursor_x  = 0;
   } else if (c == '\r') {
     // skip em
@@ -491,7 +491,7 @@ void Core_GFX::write(uint8_t c) {
     drawChar(cursor_x, cursor_y, c, textcolor, textbgcolor, textsize);
     cursor_x += textsize*6;
     if (wrap && (cursor_x > (_width - textsize*6))) {
-      cursor_y -= textsize*8;
+      cursor_y += textsize*8;
       cursor_x = 0;
     }
   }
@@ -518,7 +518,7 @@ void Core_GFX::drawChar(int16_t x, int16_t y, unsigned char c, uint16_t color, u
 	{
 		Z=r/size;
 		tmp=font5x8[c][Z];
-		for (k=0;k<FontH;k++)
+		for (k= FontH;k>0;k--)
 		{
 
 			F=(7-(k / size));
@@ -551,7 +551,7 @@ void Core_GFX::drawChar(int16_t x, int16_t y, unsigned char c, uint16_t color, u
 				break;
 			}
 
-			if ( (tmp & (1 << F))!=0 ) drawPixel(X,Y,color );
+			if ( (tmp & (1 << F))!=0 ) drawPixel(X, FontH-Y,color );
 		}
 	} 
 
@@ -623,9 +623,7 @@ void  Core_GFX::setTextDir(uint8_t d){
 // with the erroneous character indices.  By default, the library uses the
 // original 'wrong' behavior and old sketches will still work.  Pass 'true'
 // to this function to use correct CP437 character values in your code.
-void Core_GFX::cp437(boolean x) {
-  _cp437 = x;
-}
+
 
 // Return the size of the display (per current rotation)
 int16_t Core_GFX::width(void) const {

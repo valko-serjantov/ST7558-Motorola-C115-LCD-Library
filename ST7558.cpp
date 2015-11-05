@@ -65,13 +65,13 @@ void  ST7558::initBacklight(uint8_t GPIO) {
 	pinMode(BacklightGPIO, OUTPUT );
 }
 void ST7558::BacklightOn(void) {
-	//analogWrite(BacklightGPIO, BlLevel);
-	digitalWrite(BacklightGPIO, LOW);
+	analogWrite(BacklightGPIO, BlLevel);
+	//digitalWrite(BacklightGPIO, LOW);
 }
 
 void ST7558::BacklightOff(void) {
-	//analogWrite(BacklightGPIO, 255)
-	digitalWrite(BacklightGPIO, HIGH);
+	analogWrite(BacklightGPIO, 255);
+	//digitalWrite(BacklightGPIO, HIGH);
 }
 void ST7558::SetBacklightLevel(uint8_t level) {
 	BlLevel = level; 
@@ -90,6 +90,9 @@ ST7558::ST7558( uint8_t rst)
  : Core_GFX(ST7558_WIDTH, ST7558_HEIGHT)
 {
  _rst  = rst;
+}
+ST7558::~ST7558() {
+	
 }
 
 inline void ST7558::i2cwrite(uint8_t *data, uint8_t len) {
@@ -163,10 +166,11 @@ void ST7558::setContrast(uint8_t val) {
 }
 
 
-void ST7558::init(void) {
+void ST7558::init(uint8_t sda, uint8_t scl) {
   
-  
-  Wire.begin();
+  _sda = sda;
+  _scl = scl;
+  Wire.begin(_sda,_scl);
 
   colstart= 0x80;
   rowstart= 0x40;
@@ -235,7 +239,7 @@ void ST7558::drawPixel(int16_t x, int16_t y,  uint16_t color) {
   
   if((x < 0) ||(x >= _width) || (y < 0) || (y >= _height)) return;
   /// Switch Y orientation Y 
-  y = _height - y;
+//  y = _height - y;
 
   int16_t t;
   switch(rotation){
@@ -329,3 +333,9 @@ void ST7558::clearDisplay(void) {
   updateBoundingBox(0, 0, _width-1, _height-1);
   cursor_y = cursor_x = 0;
 }
+
+void ST7558::SetTextPosition(uint8_t line, uint8_t row) {
+
+	
+}
+
