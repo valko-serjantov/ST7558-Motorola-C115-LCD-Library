@@ -12,7 +12,8 @@
 
 // Standard ASCII 5x8 font + russian
 
-static const unsigned char font5x8[224][5]  =
+//static const unsigned char font5x8[224][5]  =
+PROGMEM prog_uchar font5x8[][5] =
 {
     { 0x00, 0x00, 0x00, 0x00, 0x00 },   // sp  32
     { 0x00, 0x00, 0x2f, 0x00, 0x00 },   // !   33

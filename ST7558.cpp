@@ -49,12 +49,12 @@
 #include <stdlib.h>
 #include <Wire.h>
 #include "ST7558.h"
-
  
 // the memory framebuffer for the LCD
-uint8_t st7558_buffer[918];
-
-#define enablePartialUpdate
+////
+///uint8_t st7558_buffer[918];
+uint8_t st7558_buffer[9][102];
+//#define enablePartialUpdate
 
 #ifdef enablePartialUpdate
 static uint8_t xUpdateMin, xUpdateMax, yUpdateMin, yUpdateMax;
@@ -64,15 +64,15 @@ void  ST7558::initBacklight(uint8_t GPIO) {
 	BacklightGPIO = GPIO;
 	pinMode(BacklightGPIO, OUTPUT );
 }
+
 void ST7558::BacklightOn(void) {
 	analogWrite(BacklightGPIO, BlLevel);
-	//digitalWrite(BacklightGPIO, LOW);
 }
 
 void ST7558::BacklightOff(void) {
-	analogWrite(BacklightGPIO, 255);
-	//digitalWrite(BacklightGPIO, HIGH);
+	analogWrite(BacklightGPIO, 0);
 }
+
 void ST7558::SetBacklightLevel(uint8_t level) {
 	BlLevel = level; 
 	analogWrite(BacklightGPIO, BlLevel);
@@ -90,9 +90,12 @@ ST7558::ST7558( uint8_t rst)
  : Core_GFX(ST7558_WIDTH, ST7558_HEIGHT)
 {
  _rst  = rst;
+ BlLevel = BACKHLIGHT_MAX;
+
 }
 ST7558::~ST7558() {
-	
+	BacklightOff();
+
 }
 
 inline void ST7558::i2cwrite(uint8_t *data, uint8_t len) {
@@ -117,7 +120,7 @@ void ST7558::hwReset(void){
 }
   
 static uint8_t 
-          cmd_init[]= {CONTROL_RS_CMD, // Bit de Control A0=0
+          cmd_init[]  = {CONTROL_RS_CMD, // Bit de Control A0=0
                                 0x2E,                       // MXMY
                                 0x21,                       // Extend Set H=1
                                 0x12,                       // Bias
@@ -125,13 +128,16 @@ static uint8_t
                                 0x0B,                       // Boost
                                 0x20,                       // Normal Set H=0
                                 0x11,                       // PRS
-                                0x00,                       // nop
-                                0x40,                       // Y addr
-                                0x80,                       // X addr
+                                0x20, ///0x00               // nop
+								0x08,
+								0x20,
+								0x0C,
+								//0x40,                       // Y addr
+                                //0x80,                       // X addr
 	  },
-          cmd_invert[]= {CONTROL_RS_CMD, 0x20, 0x0D},
-          cmd_on[]= {CONTROL_RS_CMD, 0x20, 0x0C},
-          cmd_off[]= {CONTROL_RS_CMD, 0x20, 0x08},
+          cmd_invert[]  = {CONTROL_RS_CMD,  0x0D},
+          cmd_on[]  = {CONTROL_RS_CMD,  0x0C},
+          cmd_off[]  = {CONTROL_RS_CMD,  0x08},
           zero16[] = { CONTROL_RS_RAM, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0 };
 
 void ST7558::displayOff(void){
@@ -143,9 +149,12 @@ void ST7558::displayOn(void){
 }
 
 void ST7558::setAddrXY(uint8_t x, uint8_t y){
+	
+	if (y >9) { y = 9; };
+	if (x >101) { x = 101; };
+    //uint8_t cmdXY[]={CONTROL_RS_CMD, 0x20, colstart+ x, rowstart+y};  
+	uint8_t cmdXY[] = { CONTROL_RS_CMD, ST7558_SETXADDR | x, ST7558_SETYADDR | y };
 
-  uint8_t cmdXY[]={CONTROL_RS_CMD, 0x20, colstart+x, rowstart+y};  
-  
   i2cwrite( cmdXY, sizeof(cmdXY) );
 }
 
@@ -168,106 +177,155 @@ void ST7558::setContrast(uint8_t val) {
 
 void ST7558::init(uint8_t sda, uint8_t scl) {
   
+	
   _sda = sda;
   _scl = scl;
   Wire.begin(_sda,_scl);
-
   colstart= 0x80;
   rowstart= 0x40;
   
   hwReset();
-  
   i2cwrite(cmd_init, sizeof(cmd_init));
-  
+  setAddrXY(0, 0);
   // set up a bounding box for screen updates
   updateBoundingBox(0, 0, _width-1, _height-1);
   
 }
+/*
+void ST7558::display(void) {
+	uint8_t col, maxcol, p, maxPages , h,w;
+	uint8_t buff[17], i;
+    
+	switch (rotation) {
+	case 1:
+	case 3:
+		h = _width;
+		w = _height;
+			break;
+	}
+	//maxPages = uint8_t(1 + (_height - 1) / 8);
+	maxPages = uint8_t(1 + (h - 1) / 8);
+	buff[0] = CONTROL_RS_RAM;
+
+	//for(p = 0; p < _height/8; p++) {
+	for (p = 0; p< maxPages; p++) {
+#ifdef enablePartialUpdate
+		// check if this page is part of update
+		if (yUpdateMin >= ((p + 1) * 8)) {
+			continue;   // nope, skip it!
+		}
+		if (yUpdateMax < p * 8) {
+			break;
+		}
+#endif
+
+#ifdef enablePartialUpdate
+		col = xUpdateMin;
+		maxcol = xUpdateMax;
+#else
+		// start at the beginning of the row
+		col = 0;
+		//maxcol = _width - 1;
+		maxcol = _width - 1;
+#endif
+
+		setAddrXY(col, p);
+		
+		while (col <= maxcol) {
+			for (i = 1; (i < 17) && (col <= maxcol); i++, col++)
+			{
+				
+				
+				buff[i] = st7558_buffer[col+(p*_width)];
+				
+			}
+			i2cwrite(buff, i);
+		}
+	}
+
+	displayOn();
+
+	setAddrXY(0, 0);
+
+	//command(PCD8544_SETYADDR );  // no idea why this is necessary but it is to finish the last byte?
+#ifdef enablePartialUpdate
+	xUpdateMin = _width - 1;
+	xUpdateMax = 0;
+	yUpdateMin = _height - 1;
+	yUpdateMax = 0;
+#endif
+
+} */
+
+/// original
 
 void ST7558::display(void) {
-  uint8_t col, maxcol, p, maxPages;
-  uint8_t buff[17], i;
-  
-  maxPages=uint8_t(1+(_height-1)/8) ;
-  buff[0]= CONTROL_RS_RAM;
-  
-  //for(p = 0; p < _height/8; p++) {
-  for(p = 0; p < maxPages; p++) {
-#ifdef enablePartialUpdate
-    // check if this page is part of update
-    if ( yUpdateMin >= ((p+1)*8) ) {
-      continue;   // nope, skip it!
-    }
-    if (yUpdateMax < p*8) {
-      break;
-    }
-#endif
+	uint16_t buff_size;
+	uint8_t buff[18], page,col,i;
+		
+	buff[0] = CONTROL_RS_RAM;
+	setAddrXY(0, 0);
+	col = 0;
+	for (page = 0; page < 9; page++) {
+		
+		for (col = 0; col < 6; col++) {
+			for (i = 0; i < 17; i++) {
+				buff[i+1] = st7558_buffer[page][(col*17) + i];
+			}
+			setAddrXY((col*17), page);
+			i2cwrite(buff, sizeof(buff));
+			
+		}
+			
 
-#ifdef enablePartialUpdate
-    col = xUpdateMin;
-    maxcol = xUpdateMax;
-#else
-    // start at the beginning of the row
-    col = 0;
-    maxcol = _width-1;
-#endif
-    
-    setAddrXY(col, p);
-    
-    while(col<= maxcol ){
-      for(i=1; (i<17)&&(col<= maxcol); i++,col++)
-        buff[i]=st7558_buffer[(_width*p)+col];
-      i2cwrite(buff, i);
-    }
-  }
-  
-  displayOn();
-  
-  setAddrXY(0, 0);
+	}
+	displayOn();
+	setAddrXY(0, 0);
 
-  //command(PCD8544_SETYADDR );  // no idea why this is necessary but it is to finish the last byte?
-#ifdef enablePartialUpdate
-  xUpdateMin = _width - 1;
-  xUpdateMax = 0;
-  yUpdateMin = _height-1;
-  yUpdateMax = 0;
-#endif
+	//command(PCD8544_SETYADDR );  // no idea why this is necessary but it is to finish the last byte?
 
 }
 
+
+// original
+
+
 void ST7558::drawPixel(int16_t x, int16_t y,  uint16_t color) {
   
-  if((x < 0) ||(x >= _width) || (y < 0) || (y >= _height)) return;
-  /// Switch Y orientation Y 
-//  y = _height - y;
+	
+  //// 
 
-  int16_t t;
-  switch(rotation){
+int16_t t;
+if ((x < 0) || (x >= _width) || (y < 0) || (y >= _height)) return;
+
+switch(rotation){
     case 1:
       t = x;
       x = y;
-      y =  _height - 1 - t;
+      y = HEIGHT-1-t;
       break;
     case 2:
-      x = _width - 1 - x;
-      y = _height - 1 - y;
+      x = WIDTH - 1 - x;
+      y = HEIGHT - 1 - y;
       break;
     case 3:
       t = x;
-      x = _width - 1 - y;
+      x = WIDTH - 1 - y;
       y = t;
       break;
   }
-
-  if ((x < 0) || (x >= _width) || (y < 0) || (y >= _height))
-    return;
-
-  // x is which column
-  if (!color) 
-    st7558_buffer[x+ (y/8)*_width] |= _BV(y%8);  
-  else
-    st7558_buffer[x+ (y/8)*_width] &= ~_BV(y%8); 
   
+   // x is which column    ????_width
+	 if (!color) {
+	  //st7558_buffer[x + (y / 8)*_width] |= _BV(y % 8);
+	  st7558_buffer[int(y / 8)][ x] |= _BV(y % 8);
+
+	  
+  }
+  else
+     // st7558_buffer[x+ (y / 8)*_width] &= ~_BV(y % 8);
+		st7558_buffer[int(y / 8)][x] &= ~_BV(y % 8);
+
   updateBoundingBox(x,y,x,y);
 }
 
@@ -275,7 +333,9 @@ uint8_t ST7558::getPixel(int8_t x, int8_t y) {
   if ((x < 0) || (x >= _width) || (y < 0) || (y >= _height))
     return 0;
 
-  return (st7558_buffer[x+ (y/8)*_width] >> (y%8)) & 0x1;  
+ // return (st7558_buffer[x+ (y/8)*_width] >> (y%8)) & 0x1;  
+  return (st7558_buffer[int(y / 8)][ x] >> (y % 8)) & 0x1;
+
 }
 
 uint8_t ST7558::getPixel(int8_t x, int8_t y, const uint8_t *bitmap, uint8_t w, uint8_t h) {
@@ -328,10 +388,18 @@ void ST7558::invertDisplay(boolean i){
 }
 
 // clear everything
+/*
 void ST7558::clearDisplay(void) {
   memset(st7558_buffer, 0, sizeof(st7558_buffer));
-  updateBoundingBox(0, 0, _width-1, _height-1);
+ // updateBoundingBox(0, 0, _width-1, _height-1);
+  updateBoundingBox(0, 0, _width - 1, _height - 1);
   cursor_y = cursor_x = 0;
+}
+*/
+void ST7558::clearDisplay(void) {
+	memset(st7558_buffer, 0, sizeof(st7558_buffer));
+	updateBoundingBox(0, 0, _width - 1, _height - 1);
+	cursor_y = cursor_x = 0;
 }
 
 void ST7558::SetTextPosition(uint8_t line, uint8_t row) {

@@ -32,11 +32,11 @@ POSSIBILITY OF SUCH DAMAGE.
 */
 
 #include "Core_GFX.h"
-#include "glcdfont.c"
+#include "glcdfont.h"
 #ifdef __AVR__
  #include <avr/pgmspace.h>
 #elif defined(ESP8266)
- #include <pgmspace.h>
+ //#include <pgmspace.h>
 #else
  #define pgm_read_byte(addr) (*(const unsigned char *)(addr))
 #endif
@@ -59,18 +59,18 @@ Core_GFX::Core_GFX(int16_t w, int16_t h):
 }
 
 // Draw a circle outline
-void Core_GFX::drawCircle(int16_t x0, int16_t y0, int16_t r,
+void Core_GFX::drawCircle(int16_t x0, int16_t y0, int16_t column,
     uint16_t color) {
-  int16_t f = 1 - r;
+  int16_t f = 1 - column;
   int16_t ddF_x = 1;
-  int16_t ddF_y = -2 * r;
+  int16_t ddF_y = -2 * column;
   int16_t x = 0;
-  int16_t y = r;
+  int16_t y = column;
 
-  drawPixel(x0  , y0+r, color);
-  drawPixel(x0  , y0-r, color);
-  drawPixel(x0+r, y0  , color);
-  drawPixel(x0-r, y0  , color);
+  drawPixel(x0  , y0+column, color);
+  drawPixel(x0  , y0-column, color);
+  drawPixel(x0+column, y0  , color);
+  drawPixel(x0-column, y0  , color);
 
   while (x<y) {
     if (f >= 0) {
@@ -94,12 +94,12 @@ void Core_GFX::drawCircle(int16_t x0, int16_t y0, int16_t r,
 }
 
 void Core_GFX::drawCircleHelper( int16_t x0, int16_t y0,
-               int16_t r, uint8_t cornername, uint16_t color) {
-  int16_t f     = 1 - r;
+               int16_t column, uint8_t cornername, uint16_t color) {
+  int16_t f     = 1 - column;
   int16_t ddF_x = 1;
-  int16_t ddF_y = -2 * r;
+  int16_t ddF_y = -2 * column;
   int16_t x     = 0;
-  int16_t y     = r;
+  int16_t y     = column;
 
   while (x<y) {
     if (f >= 0) {
@@ -129,21 +129,21 @@ void Core_GFX::drawCircleHelper( int16_t x0, int16_t y0,
   }
 }
 
-void Core_GFX::fillCircle(int16_t x0, int16_t y0, int16_t r,
+void Core_GFX::fillCircle(int16_t x0, int16_t y0, int16_t column,
 			      uint16_t color) {
-  drawFastVLine(x0, y0-r, 2*r+1, color);
-  fillCircleHelper(x0, y0, r, 3, 0, color);
+  drawFastVLine(x0, y0-column, 2*column+1, color);
+  fillCircleHelper(x0, y0, column, 3, 0, color);
 }
 
 // Used to do circles and roundrects
-void Core_GFX::fillCircleHelper(int16_t x0, int16_t y0, int16_t r,
+void Core_GFX::fillCircleHelper(int16_t x0, int16_t y0, int16_t column,
     uint8_t cornername, int16_t delta, uint16_t color) {
 
-  int16_t f     = 1 - r;
+  int16_t f     = 1 - column;
   int16_t ddF_x = 1;
-  int16_t ddF_y = -2 * r;
+  int16_t ddF_y = -2 * column;
   int16_t x     = 0;
-  int16_t y     = r;
+  int16_t y     = column;
 
   while (x<y) {
     if (f >= 0) {
@@ -244,28 +244,28 @@ void Core_GFX::fillScreen(uint16_t color) {
 
 // Draw a rounded rectangle
 void Core_GFX::drawRoundRect(int16_t x, int16_t y, int16_t w,
-  int16_t h, int16_t r, uint16_t color) {
+  int16_t h, int16_t column, uint16_t color) {
   // smarter version
-  drawFastHLine(x+r  , y    , w-2*r, color); // Top
-  drawFastHLine(x+r  , y+h-1, w-2*r, color); // Bottom
-  drawFastVLine(x    , y+r  , h-2*r, color); // Left
-  drawFastVLine(x+w-1, y+r  , h-2*r, color); // Right
+  drawFastHLine(x+column  , y    , w-2*column, color); // Top
+  drawFastHLine(x+column  , y+h-1, w-2*column, color); // Bottom
+  drawFastVLine(x    , y+column  , h-2*column, color); // Left
+  drawFastVLine(x+w-1, y+column  , h-2*column, color); // Right
   // draw four corners
-  drawCircleHelper(x+r    , y+r    , r, 1, color);
-  drawCircleHelper(x+w-r-1, y+r    , r, 2, color);
-  drawCircleHelper(x+w-r-1, y+h-r-1, r, 4, color);
-  drawCircleHelper(x+r    , y+h-r-1, r, 8, color);
+  drawCircleHelper(x+column    , y+column    , column, 1, color);
+  drawCircleHelper(x+w-column-1, y+column    , column, 2, color);
+  drawCircleHelper(x+w-column-1, y+h-column-1, column, 4, color);
+  drawCircleHelper(x+column    , y+h-column-1, column, 8, color);
 }
 
 // Fill a rounded rectangle
 void Core_GFX::fillRoundRect(int16_t x, int16_t y, int16_t w,
-				 int16_t h, int16_t r, uint16_t color) {
+				 int16_t h, int16_t column, uint16_t color) {
   // smarter version
-  fillRect(x+r, y, w-2*r, h, color);
+  fillRect(x+column, y, w-2*column, h, color);
 
   // draw four corners
-  fillCircleHelper(x+w-r-1, y+r, r, 1, h-2*r-1, color);
-  fillCircleHelper(x+r    , y+r, r, 2, h-2*r-1, color);
+  fillCircleHelper(x+w-column-1, y+column, column, 1, h-2*column-1, color);
+  fillCircleHelper(x+column    , y+column, column, 2, h-2*column-1, color);
 }
 
 // Draw a triangle
@@ -418,13 +418,18 @@ void Core_GFX::write(uint8_t c) {
 	if (c == '\n') {
     cursor_y += textsize*8;
     cursor_x  = 0;
-  } else if (c == '\r') {
+  } else if (c == '\c') {
     // skip em
-  } else {
+  }
+  else if (c == 0x0D)
+  {
+	  cursor_x = 0;
+  }
+  else {
 	  
 	  ///
 	  
-	  if ((c == 0xD0 )||(c == 0xD1) & (utf8handle==0x00) ) {
+	  if (((c == 0xD0 )||(c == 0xD1)) & (utf8handle==0x00) ) {
 	  utf8handle = c;
 
 #if ARDUINO >= 100
@@ -489,11 +494,27 @@ void Core_GFX::write(uint8_t c) {
 				}
 
     drawChar(cursor_x, cursor_y, c, textcolor, textbgcolor, textsize);
-    cursor_x += textsize*6;
-    if (wrap && (cursor_x > (_width - textsize*6))) {
-      cursor_y += textsize*8;
-      cursor_x = 0;
-    }
+   // в зависимости от ориентации текста в какую сторону будем писать следующий символ
+	switch (textdirection)
+	{
+	case 1: //	From top to down
+		cursor_y += textsize * 8;
+		break;
+	case 2: //	From right to left
+		cursor_x += textsize * 6;
+		if (wrap && (cursor_x < 0)) {
+			cursor_y += textsize * 8;
+			cursor_x = _width - textsize * 6;
+		}
+		break;
+	case 0: //	Normal text direction left to right
+		cursor_x += textsize * 6;
+		if (wrap && (cursor_x > (_width - textsize * 6))) {
+			cursor_y += textsize * 8;
+			cursor_x = 0;
+		}
+		break;
+	}
   }
 #if ARDUINO >= 100
   return 1;
@@ -505,53 +526,32 @@ void Core_GFX::write(uint8_t c) {
 
 // Draw a character
 void Core_GFX::drawChar(int16_t x, int16_t y, unsigned char c, uint16_t color, uint16_t bg, uint8_t size) {
-	uint8_t k,r,FontH,FontW;
+	uint8_t row,column,FontHeight,FontWidth;
 	uint8_t X,Y,F,Z;
 	uint8_t tmp;
 	
 	c-=32;
 	// x ширина x+5 точек символ
-	if (size==0) size=1;
-	FontH=8 * size;
-	FontW=5 * size;
-	for (r=0; r<FontW;r++ )
+	FontHeight=8 * textsize;
+	FontWidth=5 * textsize;
+	for (column=0; column<FontWidth;column++ )
 	{
-		Z=r/size;
-		tmp=font5x8[c][Z];
-		for (k= FontH;k>0;k--)
+		 
+		Z=column/ textsize;
+		tmp= pgm_read_byte(&font5x8[c][Z]);
+		
+		for (row= 0;row<FontHeight;row++)
 		{
-
-			F=(7-(k / size));
-			
-			switch (textdirection){
-			case 0: //Normal Left to Right direction
-				X = x + r;
-				Y = y + k;
-				break;
-			case 1: // поворот на 90 градусов
-				/*
-				X=x+k;
-				Y=y-r;
-				*/
-				break;
-			case 2:// поворот на 180 градусов
-				/*
-				X=x-r;
-				Y=y-k;
-				*/
-				
-
-				break;
-			case 3:// поворот на 270 градусов
-				/*
-				X=x+FontH-k;
-				Y=y+r;
-				*/
-				
-				break;
+			F = (row / size);
+			X = x + column;
+			Y = y + row;
+			if ((tmp & (1 << F)) != 0) {
+				drawPixel(X, Y, color);
 			}
-
-			if ( (tmp & (1 << F))!=0 ) drawPixel(X, FontH-Y,color );
+			else if (bg != color)
+			{
+				drawPixel(X, Y, bg);
+			};
 		}
 	} 
 
@@ -601,32 +601,26 @@ void Core_GFX::setRotation(uint8_t x) {
   switch(rotation) {
    case 0:
    case 2:
-    _width  = WIDTH;
-    _height = HEIGHT;
+    this->_width  = WIDTH;
+	this->_height = HEIGHT;
     break;
    case 1:
    case 3:
-    _width  = HEIGHT;
-    _height = WIDTH;
+	   _width  = HEIGHT;
+	   _height = WIDTH;
     break;
   }
 }
 
-void  Core_GFX::setTextDir(uint8_t d){
+void  Core_GFX::setTextDirection(uint8_t d){
+	
 	textdirection = (d & 3 );
-}
 
-// Enable (or disable) Code Page 437-compatible charset.
-// There was an error in glcdfont.c for the longest time -- one character
-// (#176, the 'light shade' block) was missing -- this threw off the index
-// of every character that followed it.  But a TON of code has been written
-// with the erroneous character indices.  By default, the library uses the
-// original 'wrong' behavior and old sketches will still work.  Pass 'true'
-// to this function to use correct CP437 character values in your code.
+}
 
 
 // Return the size of the display (per current rotation)
-int16_t Core_GFX::width(void) const {
+int16_t Core_GFX::width(void) const{
   return _width;
 }
  

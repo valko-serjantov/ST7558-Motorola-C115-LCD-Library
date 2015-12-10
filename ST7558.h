@@ -39,7 +39,8 @@
   #include "pins_arduino.h"
 #endif
 #include <Core_GFX.h>
-#define ST7558_WIDTH    96  // 94 visibles de 102 (de 0 a 95)
+#define BACKHLIGHT_MAX 255
+#define ST7558_WIDTH    96 //96  // 94 visibles de 102 (de 0 a 95)
 #define ST7558_HEIGHT   65  // 64 visibles de 65 (de 0 a 64)
 #define ST7558_MAX_TEXT_LINE 7
 #define	ST7558_MAX_TEXT_ROW 15
@@ -50,7 +51,8 @@
 
 #define MORE_CONTROL        0x80
 #define CONTROL_RS_RAM     0x40
-#define CONTROL_RS_CMD     0x00
+#define CONTROL_RS_CMD     0x20
+
 
 
 #define ST7558_POWERDOWN 0x04
@@ -80,12 +82,13 @@ class ST7558 : public Core_GFX {
  
     ST7558( uint8_t rst=-1);
 	~ST7558();
-	void init(uint8_t sda, uint8_t scl),
+	void init(uint8_t sda = 4, uint8_t scl = 5),
 		initBacklight(uint8_t GPIO),
 		BacklightOn(void),
 		BacklightOff(void),
 		SetBacklightLevel(uint8_t level),
 		display(void),
+		display1(void),
 		drawPixel(int16_t posX, int16_t posY, uint16_t color),
 		setContrast(uint8_t val),
 		drawFastVLine(int16_t x, int16_t y, int16_t h, uint16_t color),
@@ -97,10 +100,11 @@ class ST7558 : public Core_GFX {
 		clearDisplay(void),
 		SetTextPosition(uint8_t line, uint8_t row);
 		
+		
   uint8_t getPixel(int8_t x, int8_t y),
               getPixel(int8_t x, int8_t y, const uint8_t *bitmap, uint8_t w, uint8_t h);
            
- 
+  
   private:
 	   void i2cwrite(uint8_t *data, uint8_t len),
             hwReset(void),

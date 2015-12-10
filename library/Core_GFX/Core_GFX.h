@@ -61,7 +61,7 @@ class Core_GFX : public Print {
     setTextSize(uint8_t s),
     setTextWrap(boolean w),
     setRotation(uint8_t r),
-	setTextDir(uint8_t d),
+	setTextDirection(uint8_t d),
 	cp437(boolean x=true);
 
 #if ARDUINO >= 100
@@ -70,7 +70,7 @@ class Core_GFX : public Print {
   virtual void   write(uint8_t);
   
 #endif
-
+  /*
   int16_t height(void) const;
   int16_t width(void) const;
 
@@ -79,6 +79,16 @@ class Core_GFX : public Print {
   // get current cursor position (get rotation safe maximum values, using: width() for x, height() for y)
   int16_t getCursorX(void) const;
   int16_t getCursorY(void) const;
+  */
+  int16_t height(void) const ;
+  int16_t width(void) const ;
+
+  uint8_t getRotation(void)const ;
+
+  // get current cursor position (get rotation safe maximum values, using: width() for x, height() for y)
+  int16_t getCursorX(void) const;
+  int16_t getCursorY(void) const;
+
 
  protected:
   const int16_t
@@ -91,7 +101,7 @@ class Core_GFX : public Print {
   uint8_t
     textsize,
     rotation,
-	textdirection,
+	textdirection = 0,
 	utf8handle = 0x00;
   boolean
 	  wrap;   // If set, 'wrap' text at right edge of display
